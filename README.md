@@ -3,71 +3,122 @@
 ## Описание
 
 REST API для управления организационной структурой:
-- подразделения (иерархия)
+
+- подразделения с иерархией (дерево)
 - сотрудники внутри подразделений
-- перемещение без циклов
-- удаление (cascade / reassign)
+- перемещение подразделений без циклов
+- удаление подразделений (cascade / reassign)
 
 ---
 
 ## Запуск проекта
 
-### Через Docker
+### 1. Поднять проект
 
-docker compose up --build
-
----
-
-### API будет доступно:
-
-http://localhost:8080
+make up
 
 ---
 
-## База данных
+### 2. Остановить проект
 
-PostgreSQL поднимается автоматически через docker-compose.
+make down
+
+---
+
+## Что делает make up
+
+Команда:
+
+make up
+
+выполняет:
+
+1. запуск PostgreSQL через docker compose  
+2. ожидание готовности базы  
+3. установка goose (если не установлен)  
+4. накатывание миграций  
+5. запуск приложения
 
 ---
 
 ## API
 
 ### Создать подразделение
+
 POST /departments
+
+Body:
+- name (string)
+- parent_id (int, optional)
 
 ---
 
 ### Получить подразделение (дерево)
+
 GET /departments/{id}?depth=1&include_employees=true
 
-- depth — глубина дерева (max 5)
-- include_employees — включить сотрудников
+Query параметры:
+- depth (int, max 5) — глубина дерева
+- include_employees (bool) — включать сотрудников
 
 ---
 
 ### Обновить подразделение
+
 PATCH /departments/{id}
+
+Body:
+- name (string, optional)
+- parent_id (int, optional)
 
 ---
 
 ### Удалить подразделение
-DELETE /departments/{id}?mode=cascade  
-DELETE /departments/{id}?mode=reassign&reassign_to_department_id=2
 
-- cascade — удалить всё дерево
-- reassign — перенести сотрудников и удалить отдел
+DELETE /departments/{id}
+
+Query:
+- mode=cascade — удалить всё дерево
+- mode=reassign — перенести сотрудников
+
+Дополнительно:
+- reassign_to_department_id (обязателен при mode=reassign)
 
 ---
 
 ### Создать сотрудника
+
 POST /departments/{id}/employees
+
+Body:
+- full_name (string)
+- position (string)
+- hired_at (date, optional)
 
 ---
 
-## Кратко о логике
+## Бизнес-логика
 
-- Иерархия подразделений (дерево)
-- Запрет циклов
-- До 5 уровней вложенности
-- Сотрудники привязаны к department
-- Cascade / reassign удаление
+- подразделения образуют дерево через parent_id
+- запрещено создавать циклы в структуре
+- имя подразделения уникально в рамках одного родителя
+- глубина дерева ограничена (до 5 уровней)
+- сотрудники привязаны к подразделениям
+- поддерживается cascade и reassign удаление
+
+---
+
+## Требования
+
+- Go
+- net/http
+- GORM
+- PostgreSQL
+- goose (миграции)
+- Docker / docker-compose
+
+---
+
+## Примечание
+
+Все миграции выполняются автоматически через makefile при запуске проекта.
