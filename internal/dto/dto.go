@@ -1,16 +1,19 @@
 package dto
 
-import "time"
+import (
+	"OrgAPI/internal/dto/types"
+	"time"
+)
 
 type CreateDepartmentRequest struct {
 	Name     string `json:"name"`
-	ParentID *uint  `json:"parent_id"`
+	ParentID *int64 `json:"parent_id"`
 }
 
 type DepartmentResponse struct {
-	ID        uint      `json:"id"`
+	ID        int64     `json:"id"`
 	Name      string    `json:"name"`
-	ParentID  *uint     `json:"parent_id"`
+	ParentID  *int64    `json:"parent_id"`
 	CreatedAt time.Time `json:"created_at"`
 
 	Employees []EmployeeResponse   `json:"employees,omitempty"`
@@ -18,18 +21,18 @@ type DepartmentResponse struct {
 }
 
 type UpdateDepartmentRequest struct {
-	Name     *string `json:"name"`
-	ParentID *uint   `json:"parent_id"`
+	Name     *string       `json:"name"`
+	ParentID types.NullInt `json:"parent_id"`
 }
 
 type DeleteDepartmentRequest struct {
 	Mode                   string
-	ReassignToDepartmentID *uint
+	ReassignToDepartmentID *int64
 }
 
 type EmployeeResponse struct {
-	ID           uint       `json:"id"`
-	DepartmentID uint       `json:"department_id"`
+	ID           int64      `json:"id"`
+	DepartmentID int64      `json:"department_id"`
 	FullName     string     `json:"full_name"`
 	Position     string     `json:"position"`
 	HiredAt      *time.Time `json:"hired_at"`

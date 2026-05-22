@@ -13,9 +13,9 @@ import (
 
 type DepartmentService interface {
 	CreateDepartment(ctx context.Context, req dto.CreateDepartmentRequest) (*dto.DepartmentResponse, error)
-	GetDepartmentTree(ctx context.Context, id uint, depth int, includeEmployees bool) (*dto.DepartmentResponse, error)
-	UpdateDepartment(ctx context.Context, id uint, req dto.UpdateDepartmentRequest) (*dto.DepartmentResponse, error)
-	DeleteDepartment(ctx context.Context, id uint, req dto.DeleteDepartmentRequest) error
+	GetDepartmentTree(ctx context.Context, id int64, depth int, includeEmployees bool) (*dto.DepartmentResponse, error)
+	UpdateDepartment(ctx context.Context, id int64, req dto.UpdateDepartmentRequest) (*dto.DepartmentResponse, error)
+	DeleteDepartment(ctx context.Context, id int64, req dto.DeleteDepartmentRequest) error
 }
 
 type departmentService struct {
@@ -70,7 +70,7 @@ func (s *departmentService) CreateDepartment(ctx context.Context, req dto.Create
 	}, nil
 }
 
-func (s *departmentService) GetDepartmentTree(ctx context.Context, id uint, depth int, includeEmployees bool) (*dto.DepartmentResponse, error) {
+func (s *departmentService) GetDepartmentTree(ctx context.Context, id int64, depth int, includeEmployees bool) (*dto.DepartmentResponse, error) {
 
 	if depth < 1 {
 		depth = 1
@@ -165,7 +165,7 @@ func (s *departmentService) buildDepartmentTree(ctx context.Context, department 
 	return response, nil
 }
 
-func (s *departmentService) UpdateDepartment(ctx context.Context, id uint, req dto.UpdateDepartmentRequest) (*dto.DepartmentResponse, error) {
+func (s *departmentService) UpdateDepartment(ctx context.Context, id int64, req dto.UpdateDepartmentRequest) (*dto.DepartmentResponse, error) {
 
 	department, err := s.repo.GetByID(
 		ctx,
@@ -187,46 +187,38 @@ func (s *departmentService) UpdateDepartment(ctx context.Context, id uint, req d
 
 		department.Name = name
 	}
-	if req.ParentID != nil {
 
-		if *req.ParentID == id {
-			return nil, errors.New(
-				"department cannot be parent of itself",
-			)
-		}
+	if req.ParentID.Set {
 
-		_, err := s.repo.GetByID(
-			ctx,
-			*req.ParentID,
-		)
+		if req.ParentID.Value == nil {
+			department.ParentID = nil
+		} else {
 
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return nil, errors.New(
-					"parent department not found",
-				)
+			parentID := *req.ParentID.Value
+
+			if parentID == id {
+				return nil, errors.New("department cannot be parent of itself")
 			}
 
-			return nil, err
+			_, err := s.repo.GetByID(ctx, parentID)
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return nil, errors.New("parent department not found")
+				}
+				return nil, err
+			}
+
+			hasCycle, err := s.wouldCreateCycle(ctx, id, parentID)
+			if err != nil {
+				return nil, err
+			}
+
+			if hasCycle {
+				return nil, errors.New("cycle detected")
+			}
+
+			department.ParentID = &parentID
 		}
-
-		hasCycle, err := s.wouldCreateCycle(
-			ctx,
-			id,
-			*req.ParentID,
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if hasCycle {
-			return nil, errors.New(
-				"cycle detected",
-			)
-		}
-
-		department.ParentID = req.ParentID
 	}
 	err = s.repo.Update(
 		ctx,
@@ -245,7 +237,7 @@ func (s *departmentService) UpdateDepartment(ctx context.Context, id uint, req d
 	}, nil
 }
 
-func (s *departmentService) wouldCreateCycle(ctx context.Context, departmentID uint, targetParentID uint) (bool, error) {
+func (s *departmentService) wouldCreateCycle(ctx context.Context, departmentID int64, targetParentID int64) (bool, error) {
 
 	currentID := targetParentID
 
@@ -274,7 +266,7 @@ func (s *departmentService) wouldCreateCycle(ctx context.Context, departmentID u
 	return false, nil
 }
 
-func (s *departmentService) DeleteDepartment(ctx context.Context, id uint, req dto.DeleteDepartmentRequest) error {
+func (s *departmentService) DeleteDepartment(ctx context.Context, id int64, req dto.DeleteDepartmentRequest) error {
 
 	_, err := s.repo.GetByID(ctx, id)
 

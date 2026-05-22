@@ -68,7 +68,7 @@ func (h *DepartmentHandler) GetDepartment(
 ) {
 	idParam := r.PathValue("id")
 
-	id64, err := strconv.ParseUint(idParam, 10, 64)
+	id64, err := strconv.ParseInt(idParam, 10, 64)
 
 	if err != nil {
 		utils.WriteError(
@@ -108,7 +108,7 @@ func (h *DepartmentHandler) GetDepartment(
 
 	response, err := h.service.GetDepartmentTree(
 		r.Context(),
-		uint(id64),
+		int64(id64),
 		depth,
 		includeEmployees,
 	)
@@ -141,7 +141,7 @@ func (h *DepartmentHandler) UpdateDepartment(
 
 	idParam := r.PathValue("id")
 
-	id64, err := strconv.ParseUint(
+	id64, err := strconv.ParseInt(
 		idParam,
 		10,
 		64,
@@ -171,7 +171,7 @@ func (h *DepartmentHandler) UpdateDepartment(
 
 	response, err := h.service.UpdateDepartment(
 		r.Context(),
-		uint(id64),
+		int64(id64),
 		req,
 	)
 
@@ -215,7 +215,7 @@ func (h *DepartmentHandler) DeleteDepartment(
 
 	idParam := r.PathValue("id")
 
-	id64, err := strconv.ParseUint(
+	id64, err := strconv.ParseInt(
 		idParam,
 		10,
 		64,
@@ -241,7 +241,7 @@ func (h *DepartmentHandler) DeleteDepartment(
 	}
 	if reassignIDQuery != "" {
 
-		reassignID64, err := strconv.ParseUint(
+		reassignID64, err := strconv.ParseInt(
 			reassignIDQuery,
 			10,
 			64,
@@ -256,13 +256,13 @@ func (h *DepartmentHandler) DeleteDepartment(
 			return
 		}
 
-		reassignID := uint(reassignID64)
+		reassignID := int64(reassignID64)
 
 		req.ReassignToDepartmentID = &reassignID
 	}
 	err = h.service.DeleteDepartment(
 		r.Context(),
-		uint(id64),
+		int64(id64),
 		req,
 	)
 

@@ -14,7 +14,7 @@ import (
 type EmployeeService interface {
 	CreateEmployee(
 		ctx context.Context,
-		departmentID uint,
+		departmentID int64,
 		req dto.CreateEmployeeRequest,
 	) (*dto.EmployeeResponse, error)
 }
@@ -36,7 +36,7 @@ func NewEmployeeService(
 
 func (s *employeeService) CreateEmployee(
 	ctx context.Context,
-	departmentID uint,
+	departmentID int64,
 	req dto.CreateEmployeeRequest,
 ) (*dto.EmployeeResponse, error) {
 

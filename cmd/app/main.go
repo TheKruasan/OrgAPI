@@ -21,11 +21,7 @@ import (
 func main() {
 
 	// load env
-	err := godotenv.Load()
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	_ = godotenv.Load()
 
 	// config
 	cfg := config.Load()

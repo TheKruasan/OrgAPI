@@ -28,7 +28,7 @@ func (h *EmployeeHandler) CreateEmployee(
 
 	idParam := r.PathValue("id")
 
-	id64, err := strconv.ParseUint(
+	id64, err := strconv.ParseInt(
 		idParam,
 		10,
 		64,
@@ -58,7 +58,7 @@ func (h *EmployeeHandler) CreateEmployee(
 
 	response, err := h.service.CreateEmployee(
 		r.Context(),
-		uint(id64),
+		int64(id64),
 		req,
 	)
 

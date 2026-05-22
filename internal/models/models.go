@@ -3,11 +3,11 @@ package models
 import "time"
 
 type Department struct {
-	ID uint `gorm:"primaryKey"`
+	ID int64 `gorm:"primaryKey"`
 
 	Name string `gorm:"size:200;not null"`
 
-	ParentID *uint
+	ParentID *int64
 
 	Parent *Department
 
@@ -19,9 +19,9 @@ type Department struct {
 }
 
 type Employee struct {
-	ID uint `gorm:"primaryKey"`
+	ID int64 `gorm:"primaryKey"`
 
-	DepartmentID uint `gorm:"not null"`
+	DepartmentID int64 `gorm:"not null"`
 
 	Department Department
 
