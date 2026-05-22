@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DB_URL="postgres://postgres:postgres@localhost:5432/org_db?sslmode=disable"
+DB_URL="postgres://postgres:postgres@postgres:5432/org_db?sslmode=disable"
 
 case "$1" in
     status)

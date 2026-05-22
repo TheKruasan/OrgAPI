@@ -1,124 +1,102 @@
-# Organization Structure API
+# Org Structure API
 
-## Описание
+REST API для управления организационной структурой (подразделения и сотрудники).
 
-REST API для управления организационной структурой:
+---
 
-- подразделения с иерархией (дерево)
-- сотрудники внутри подразделений
-- перемещение подразделений без циклов
-- удаление подразделений (cascade / reassign)
+## Стек
+- Go (net/http)
+- PostgreSQL
+- GORM
+- Goose (миграции)
+- Docker / docker-compose
 
 ---
 
 ## Запуск проекта
 
-### 1. Поднять проект
-
-make up
+docker compose up --build
 
 ---
 
-### 2. Остановить проект
+## Что происходит при запуске
 
-make down
-
----
-
-## Что делает make up
-
-Команда:
-
-make up
-
-выполняет:
-
-1. запуск PostgreSQL через docker compose  
-2. ожидание готовности базы  
-3. установка goose (если не установлен)  
-4. накатывание миграций  
-5. запуск приложения
+1. Поднимается PostgreSQL  
+2. Дожидаемся готовности БД (healthcheck)  
+3. Применяются миграции (goose)  
+4. Запускается приложение  
 
 ---
 
 ## API
 
-### Создать подразделение
+### Departments
 
-POST /departments
+Создать подразделение  
+POST /departments/
 
-Body:
-- name (string)
-- parent_id (int, optional)
-
----
-
-### Получить подразделение (дерево)
-
+Получить подразделение (дерево)  
 GET /departments/{id}?depth=1&include_employees=true
 
-Query параметры:
-- depth (int, max 5) — глубина дерева
-- include_employees (bool) — включать сотрудников
-
----
-
-### Обновить подразделение
-
+Обновить подразделение  
 PATCH /departments/{id}
 
-Body:
-- name (string, optional)
-- parent_id (int, optional)
+Удалить подразделение  
+DELETE /departments/{id}?mode=cascade|reassign
 
 ---
 
-### Удалить подразделение
+### Employees
 
-DELETE /departments/{id}
-
-Query:
-- mode=cascade — удалить всё дерево
-- mode=reassign — перенести сотрудников
-
-Дополнительно:
-- reassign_to_department_id (обязателен при mode=reassign)
-
----
-
-### Создать сотрудника
-
-POST /departments/{id}/employees
-
-Body:
-- full_name (string)
-- position (string)
-- hired_at (date, optional)
+Создать сотрудника  
+POST /departments/{id}/employees/
 
 ---
 
 ## Бизнес-логика
 
-- подразделения образуют дерево через parent_id
-- запрещено создавать циклы в структуре
-- имя подразделения уникально в рамках одного родителя
-- глубина дерева ограничена (до 5 уровней)
-- сотрудники привязаны к подразделениям
-- поддерживается cascade и reassign удаление
+- Иерархия подразделений (parent_id → self reference)  
+- Запрещены циклы в дереве  
+- Уникальность имени внутри одного parent  
+- Удаление:
+  - cascade — удаление всего дерева
+  - reassign — перенос сотрудников  
 
 ---
 
-## Требования
+## Миграции
 
-- Go
-- net/http
-- GORM
-- PostgreSQL
-- goose (миграции)
-- Docker / docker-compose
+Миграции применяются автоматически при старте контейнера migrate.
 
 ---
 
-## Примечание
+## Переменные окружения
 
-Все миграции выполняются автоматически через makefile при запуске проекта.
+DB_HOST=postgres  
+DB_PORT=5432  
+DB_USER=postgres  
+DB_PASSWORD=postgres  
+DB_NAME=org_db  
+
+.env файл оставлен для удобства запуска и тестирования 
+---
+
+## Остановка
+
+docker compose down
+
+---
+
+## Структура проекта
+
+cmd/  
+internal/  
+  handler/  
+  service/  
+  repository/  
+  dto/  
+  models/  
+migrations/  
+Dockerfile  
+docker-compose.yml  
+migration.sh  
