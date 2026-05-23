@@ -3,7 +3,6 @@ package service
 import (
 	"OrgAPI/internal/dto"
 	"OrgAPI/internal/models"
-	"OrgAPI/internal/repository"
 	"OrgAPI/internal/utils"
 	"context"
 	"errors"
@@ -11,34 +10,26 @@ import (
 	"gorm.io/gorm"
 )
 
-type EmployeeService interface {
-	CreateEmployee(
+type EmployeeRepository interface {
+	Create(
 		ctx context.Context,
-		departmentID int64,
-		req dto.CreateEmployeeRequest,
-	) (*dto.EmployeeResponse, error)
+		employee *models.Employee,
+	) error
 }
 
-type employeeService struct {
-	employeeRepo   repository.EmployeeRepository
-	departmentRepo repository.DepartmentRepository
+type EmployeeService struct {
+	employeeRepo   EmployeeRepository
+	departmentRepo DepartmentRepository
 }
 
-func NewEmployeeService(
-	employeeRepo repository.EmployeeRepository,
-	departmentRepo repository.DepartmentRepository,
-) EmployeeService {
-	return &employeeService{
+func NewEmployeeService(employeeRepo EmployeeRepository, departmentRepo DepartmentRepository) *EmployeeService {
+	return &EmployeeService{
 		employeeRepo:   employeeRepo,
 		departmentRepo: departmentRepo,
 	}
 }
 
-func (s *employeeService) CreateEmployee(
-	ctx context.Context,
-	departmentID int64,
-	req dto.CreateEmployeeRequest,
-) (*dto.EmployeeResponse, error) {
+func (s *EmployeeService) CreateEmployee(ctx context.Context, departmentID int64, req dto.CreateEmployeeRequest) (*dto.EmployeeResponse, error) {
 
 	_, err := s.departmentRepo.GetByID(
 		ctx,

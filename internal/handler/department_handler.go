@@ -2,29 +2,23 @@ package handler
 
 import (
 	"OrgAPI/internal/dto"
-	"OrgAPI/internal/service"
 	"OrgAPI/internal/utils"
 	"encoding/json"
 	"net/http"
 	"strconv"
 )
 
-type DepartmentHandler struct {
-	service service.DepartmentService
+type departmentHandler struct {
+	service DepartmentService
 }
 
-func NewDepartmentHandler(
-	service service.DepartmentService,
-) *DepartmentHandler {
-	return &DepartmentHandler{
+func NewDepartmentHandler(service DepartmentService) *departmentHandler {
+	return &departmentHandler{
 		service: service,
 	}
 }
 
-func (h *DepartmentHandler) CreateDepartment(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+func (h *departmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	var req dto.CreateDepartmentRequest
 
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -62,10 +56,7 @@ func (h *DepartmentHandler) CreateDepartment(
 	)
 }
 
-func (h *DepartmentHandler) GetDepartment(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+func (h *departmentHandler) GetDepartment(w http.ResponseWriter, r *http.Request) {
 	idParam := r.PathValue("id")
 
 	id64, err := strconv.ParseInt(idParam, 10, 64)
@@ -78,7 +69,7 @@ func (h *DepartmentHandler) GetDepartment(
 		)
 	}
 
-	depth := 1
+	depth := int64(1)
 
 	depthQuery := r.URL.Query().Get("depth")
 
@@ -93,7 +84,7 @@ func (h *DepartmentHandler) GetDepartment(
 			)
 		}
 
-		depth = parsedDepth
+		depth = int64(parsedDepth)
 	}
 
 	includeEmployees := true
@@ -134,10 +125,7 @@ func (h *DepartmentHandler) GetDepartment(
 	)
 }
 
-func (h *DepartmentHandler) UpdateDepartment(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+func (h *departmentHandler) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 
 	idParam := r.PathValue("id")
 
@@ -208,10 +196,7 @@ func (h *DepartmentHandler) UpdateDepartment(
 	)
 }
 
-func (h *DepartmentHandler) DeleteDepartment(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+func (h *departmentHandler) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 
 	idParam := r.PathValue("id")
 

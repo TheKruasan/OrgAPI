@@ -7,41 +7,29 @@ import (
 	"gorm.io/gorm"
 )
 
-type DepartmentRepository interface {
-	Create(ctx context.Context, department *models.Department) error
-	GetByID(ctx context.Context, id int64) (*models.Department, error)
-	GetChildren(ctx context.Context, parentID int64) ([]models.Department, error)
-	GetEmployees(ctx context.Context, departmentID int64) ([]models.Employee, error)
-	Update(ctx context.Context, department *models.Department) error
-	Delete(ctx context.Context, id int64) error
-	ReassignEmployees(ctx context.Context, fromDepartmentID int64, toDepartmentID int64) error
-	WithTx(tx *gorm.DB) DepartmentRepository
-}
-
-type departmentRepository struct {
+type DepartmentRepository struct {
 	db *gorm.DB
 }
 
-func NewDepartmentRepository(db *gorm.DB) DepartmentRepository {
-	return &departmentRepository{
+func NewDepartmentRepository(db *gorm.DB) *DepartmentRepository {
+	return &DepartmentRepository{
 		db: db,
 	}
 }
 
-func (r *departmentRepository) WithTx(tx *gorm.DB) DepartmentRepository {
-
-	return &departmentRepository{
+func (r *DepartmentRepository) WithTx(tx *gorm.DB) *DepartmentRepository {
+	return &DepartmentRepository{
 		db: tx,
 	}
 }
 
-func (r *departmentRepository) Create(ctx context.Context, department *models.Department) error {
+func (r *DepartmentRepository) Create(ctx context.Context, department *models.Department) error {
 	return r.db.WithContext(ctx).
 		Create(department).
 		Error
 }
 
-func (r *departmentRepository) GetByID(ctx context.Context, id int64) (*models.Department, error) {
+func (r *DepartmentRepository) GetByID(ctx context.Context, id int64) (*models.Department, error) {
 	var department models.Department
 
 	err := r.db.WithContext(ctx).
@@ -55,7 +43,7 @@ func (r *departmentRepository) GetByID(ctx context.Context, id int64) (*models.D
 	return &department, nil
 }
 
-func (r *departmentRepository) GetChildren(ctx context.Context, parentID int64) ([]models.Department, error) {
+func (r *DepartmentRepository) GetChildren(ctx context.Context, parentID int64) ([]models.Department, error) {
 
 	var children []models.Department
 
@@ -72,7 +60,7 @@ func (r *departmentRepository) GetChildren(ctx context.Context, parentID int64) 
 	return children, nil
 }
 
-func (r *departmentRepository) GetEmployees(ctx context.Context, departmentID int64) ([]models.Employee, error) {
+func (r *DepartmentRepository) GetEmployees(ctx context.Context, departmentID int64) ([]models.Employee, error) {
 
 	var employees []models.Employee
 
@@ -89,21 +77,21 @@ func (r *departmentRepository) GetEmployees(ctx context.Context, departmentID in
 	return employees, nil
 }
 
-func (r *departmentRepository) Update(ctx context.Context, department *models.Department) error {
+func (r *DepartmentRepository) Update(ctx context.Context, department *models.Department) error {
 
 	return r.db.WithContext(ctx).
 		Save(department).
 		Error
 }
 
-func (r *departmentRepository) Delete(ctx context.Context, id int64) error {
+func (r *DepartmentRepository) Delete(ctx context.Context, id int64) error {
 
 	return r.db.WithContext(ctx).
 		Delete(&models.Department{}, id).
 		Error
 }
 
-func (r *departmentRepository) ReassignEmployees(ctx context.Context, fromDepartmentID int64, toDepartmentID int64) error {
+func (r *DepartmentRepository) ReassignEmployees(ctx context.Context, fromDepartmentID int64, toDepartmentID int64) error {
 
 	return r.db.WithContext(ctx).
 		Model(&models.Employee{}).

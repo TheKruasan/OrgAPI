@@ -2,7 +2,6 @@ package handler
 
 import (
 	"OrgAPI/internal/dto"
-	"OrgAPI/internal/service"
 	"OrgAPI/internal/utils"
 	"encoding/json"
 	"net/http"
@@ -10,12 +9,10 @@ import (
 )
 
 type EmployeeHandler struct {
-	service service.EmployeeService
+	service EmployeeService
 }
 
-func NewEmployeeHandler(
-	service service.EmployeeService,
-) *EmployeeHandler {
+func NewEmployeeHandler(service EmployeeService) *EmployeeHandler {
 	return &EmployeeHandler{
 		service: service,
 	}

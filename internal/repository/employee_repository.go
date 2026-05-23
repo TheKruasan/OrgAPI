@@ -7,26 +7,17 @@ import (
 	"gorm.io/gorm"
 )
 
-type EmployeeRepository interface {
-	Create(
-		ctx context.Context,
-		employee *models.Employee,
-	) error
-}
-
-type employeeRepository struct {
+type EmployeeRepository struct {
 	db *gorm.DB
 }
 
-func NewEmployeeRepository(
-	db *gorm.DB,
-) EmployeeRepository {
-	return &employeeRepository{
+func NewEmployeeRepository(db *gorm.DB) *EmployeeRepository {
+	return &EmployeeRepository{
 		db: db,
 	}
 }
 
-func (r *employeeRepository) Create(
+func (r *EmployeeRepository) Create(
 	ctx context.Context,
 	employee *models.Employee,
 ) error {

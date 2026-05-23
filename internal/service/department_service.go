@@ -11,20 +11,22 @@ import (
 	"gorm.io/gorm"
 )
 
-type DepartmentService interface {
-	CreateDepartment(ctx context.Context, req dto.CreateDepartmentRequest) (*dto.DepartmentResponse, error)
-	GetDepartmentTree(ctx context.Context, id int64, depth int, includeEmployees bool) (*dto.DepartmentResponse, error)
-	UpdateDepartment(ctx context.Context, id int64, req dto.UpdateDepartmentRequest) (*dto.DepartmentResponse, error)
-	DeleteDepartment(ctx context.Context, id int64, req dto.DeleteDepartmentRequest) error
+type DepartmentRepository interface {
+	Create(ctx context.Context, department *models.Department) error
+	GetByID(ctx context.Context, id int64) (*models.Department, error)
+	GetChildren(ctx context.Context, parentID int64) ([]models.Department, error)
+	GetEmployees(ctx context.Context, departmentID int64) ([]models.Employee, error)
+	Update(ctx context.Context, department *models.Department) error
+	Delete(ctx context.Context, id int64) error
+	ReassignEmployees(ctx context.Context, fromDepartmentID int64, toDepartmentID int64) error
 }
 
 type departmentService struct {
-	repo repository.DepartmentRepository
+	repo DepartmentRepository
 	db   *gorm.DB
 }
 
-func NewDepartmentService(repo repository.DepartmentRepository, db *gorm.DB) DepartmentService {
-
+func NewDepartmentService(repo DepartmentRepository, db *gorm.DB) *departmentService {
 	return &departmentService{
 		repo: repo,
 		db:   db,
@@ -70,7 +72,7 @@ func (s *departmentService) CreateDepartment(ctx context.Context, req dto.Create
 	}, nil
 }
 
-func (s *departmentService) GetDepartmentTree(ctx context.Context, id int64, depth int, includeEmployees bool) (*dto.DepartmentResponse, error) {
+func (s *departmentService) GetDepartmentTree(ctx context.Context, id int64, depth int64, includeEmployees bool) (*dto.DepartmentResponse, error) {
 
 	if depth < 1 {
 		depth = 1
@@ -100,7 +102,7 @@ func (s *departmentService) GetDepartmentTree(ctx context.Context, id int64, dep
 	return response, nil
 }
 
-func (s *departmentService) buildDepartmentTree(ctx context.Context, department models.Department, depth int, includeEmployees bool) (*dto.DepartmentResponse, error) {
+func (s *departmentService) buildDepartmentTree(ctx context.Context, department models.Department, depth int64, includeEmployees bool) (*dto.DepartmentResponse, error) {
 
 	response := &dto.DepartmentResponse{
 		ID:        department.ID,
@@ -318,7 +320,7 @@ func (s *departmentService) DeleteDepartment(ctx context.Context, id int64, req 
 
 	return s.db.Transaction(func(tx *gorm.DB) error {
 
-		txRepo := s.repo.WithTx(tx)
+		txRepo := repository.NewDepartmentRepository(tx)
 
 		err := txRepo.ReassignEmployees(
 			ctx,
